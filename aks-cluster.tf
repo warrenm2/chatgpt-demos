@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "chatgpt-aks" {
 # Create a virtual network
 resource "azurerm_virtual_network" "chatgpt-aks" {
   name                = "chatgpt-aks-vnet"
-  address_space       = ["10.10.0.0/16"]
+  address_space       = ["10.10.0.0/24"]
   location            = azurerm_resource_group.chatgpt-aks.location
   resource_group_name = azurerm_resource_group.chatgpt-aks.name
 }
@@ -25,7 +25,7 @@ resource "azurerm_subnet" "chatgpt-aks-subnet" {
   resource_group_name  = azurerm_resource_group.chatgpt-aks.name
   virtual_network_name = azurerm_virtual_network.chatgpt-aks.name
  # chatgpt put 'prefix' instead of 'prefixes'
-  address_prefixes       = "10.10.1.0/24"
+  address_prefixes       = "10.10.0.0/24"
 }
 
 # Updated name
@@ -44,18 +44,22 @@ resource "azurerm_kubernetes_cluster" "chatgpt-aks" {
   dns_service_ip     = "10.10.0.10"
   # An argument named 'service_cidr' is not expected here
   service_cidr       = "10.10.0.0/24"
-
+  
+  default_node_pool {
+    name       = "chatgpt-aks-node-pool"
+    node_count = 3
+    vm_size    = "Standard_D2_v2"
+  }
   # This argument was not expected
   # Enable Kubernetes dashboard
-  enable_dashboard = true
+  #enable_dashboard = true
 
-  # Updated IP
   # Use the subnet created earlier for the AKS cluster
   network_profile {
     # suspect this does NOT have to use the subnet created earlier and can be standalone
     network_plugin     = "azure"
     network_policy     = "calico"
-    dns_service_ip     = "10.10.0.10"
+    dns_service_ip     = "172.17.0.1"
     docker_bridge_cidr = "172.17.0.1/16"
 
     service_cidr       = "10.10.0.0/24"
@@ -65,6 +69,6 @@ resource "azurerm_kubernetes_cluster" "chatgpt-aks" {
 
     outbound_type      = "loadBalancer"
     # An argument named "subnet_id" is not expected here
-    subnet_id          = azurerm_subnet.chatgpt-aks.id
+    # subnet_id          = azurerm_subnet.chatgpt-aks.id
   }
 }
