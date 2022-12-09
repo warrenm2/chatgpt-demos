@@ -25,7 +25,7 @@ resource "azurerm_subnet" "chatgpt-aks-subnet" {
   resource_group_name  = azurerm_resource_group.chatgpt-aks.name
   virtual_network_name = azurerm_virtual_network.chatgpt-aks.name
  # chatgpt put 'prefix' instead of 'prefixes'
-  address_prefixes       = "10.10.0.0/24"
+  address_prefixes       = ["10.10.0.0/24"]
 }
 
 # Updated name
@@ -41,9 +41,9 @@ resource "azurerm_kubernetes_cluster" "chatgpt-aks" {
   # Configure the AKS cluster
   kubernetes_version = "1.16.9"
   # An argument named 'dns_service_ip' is not expected here 
-  dns_service_ip     = "10.10.0.10"
+  # dns_service_ip     = "10.10.0.10"
   # An argument named 'service_cidr' is not expected here
-  service_cidr       = "10.10.0.0/24"
+  # service_cidr       = "10.10.0.0/24"
   
   default_node_pool {
     name       = "chatgpt-aks-node-pool"
